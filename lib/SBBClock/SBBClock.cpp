@@ -4,18 +4,6 @@
 
 #include "SBBClock.h"
 
-// ---------- Konstruktor ----------
-/* SBBClock::SBBClock(LGFX& display)
-    : _lcd(display),
-      canvas(display),
-      dial(&canvas),
-      tickMinute(&dial),
-      tickHour(&dial),
-      minuteHand(&dial),
-      hourHand(&dial),
-      secondHand(&dial),
-      paddle(&dial)
-{} */
 
 // ---------- Palette anwenden ----------
 void SBBClock::applyPalette(LGFX_Sprite& s) {
@@ -33,15 +21,15 @@ void SBBClock::init(int side) {
     _canvas.setColorDepth(lgfx::palette_4bit);
     _canvas.createSprite(_size, _size);
     applyPalette(_canvas);
-    _canvas.fillScreen(PalColor::Gray1);
+    _canvas.fillScreen(PalColor::Lightgray);
 
     // Dial
     _dial.setColorDepth(lgfx::palette_4bit);
     _dial.createSprite(_size, _size);
     applyPalette(_dial);
-    _dial.fillScreen(PalColor::Gray1);
+    _dial.fillScreen(PalColor::Lightgray);
 
-    _dial.fillCircle(_cx, _cy, _radius, PalColor::Gray2);
+    _dial.fillCircle(_cx, _cy, _radius, PalColor::Darkgray);
     _dial.fillCircle(_cx, _cy, _radius * 0.95, PalColor::White);
 
     createTicks();
@@ -126,10 +114,12 @@ void SBBClock::createHands() {
     {
         int w = _radius * 0.183;
         int h = w;
+        int r = (w - 1) / 2;
         _paddle.setColorDepth(lgfx::palette_4bit);
         _paddle.createSprite(w, h);
         applyPalette(_paddle);
-        _paddle.fillScreen(PalColor::Red);
+        _paddle.fillScreen(PalColor::Transparent); 
+        _paddle.fillCircle(r, r, r, PalColor::Red);
         _paddle.setPivot(w / 2, _radius * 0.645);
     }
 }
@@ -161,7 +151,7 @@ void SBBClock::update() {
     _hourHand.pushRotateZoom(&_canvas, _cx, _cy, hourAngle, 1.0, 1.0);
     _minuteHand.pushRotateZoom(&_canvas, _cx, _cy, minAngle, 1.0, 1.0);
     _secondHand.pushRotateZoom(&_canvas, _cx, _cy, secAngle, 1.0, 1.0);
-    _paddle.pushRotateZoom(&_canvas, _cx, _cy, secAngle, 1.0, 1.0);
+    _paddle.pushRotateZoom(&_canvas, _cx, _cy, secAngle, 1.0, 1.0, 0);
 
     // Ausgabe
     _canvas.pushSprite(0, 0);

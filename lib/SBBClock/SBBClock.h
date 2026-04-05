@@ -3,7 +3,8 @@
 #include <LovyanGFX.hpp>
 #include "lgfx_ESP32_2432S028.h"
 
-enum PalColor {Black, White, Gray1, Gray2, Red, Gray3, Gray4 };
+enum PalColor {Transparent, Black, White, Red, Green, Blue, Lightgray, Darkgray,
+               Yellow, Magenta, Orange, Pink, Brown, Gold, Silver, Skyblue };
 
 class SBBClock 
 {
@@ -36,9 +37,22 @@ class SBBClock
 
         // Palette
         uint32_t pal[16] = {
-            0x000000, 0xFFFFFF, 0xC0C0C0, 0x808080,
-            0xFF0000, 0x202020, 0xA0A0A0,
-            0,0,0,0,0,0,0,0
+            TFT_TRANSPARENT, 
+            TFT_BLACK,
+            TFT_WHITE,
+            TFT_RED, 
+            TFT_GREEN, 
+            TFT_BLUE, 
+            TFT_LIGHTGRAY, 
+            TFT_DARKGRAY,
+            TFT_YELLOW,
+            TFT_MAGENTA,
+            TFT_ORANGE,
+            TFT_PINK,
+            TFT_BROWN,
+            TFT_GOLD,
+            TFT_SILVER,
+            TFT_SKYBLUE
         };
 
         void applyPalette(LGFX_Sprite& s);
