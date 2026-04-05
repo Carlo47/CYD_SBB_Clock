@@ -1,0 +1,169 @@
+#define LGFX_USE_V1
+#include <LovyanGFX.hpp>
+#include "lgfx_ESP32_2432S028.h"
+
+#include "SBBClock.h"
+
+// ---------- Konstruktor ----------
+/* SBBClock::SBBClock(LGFX& display)
+    : _lcd(display),
+      canvas(display),
+      dial(&canvas),
+      tickMinute(&dial),
+      tickHour(&dial),
+      minuteHand(&dial),
+      hourHand(&dial),
+      secondHand(&dial),
+      paddle(&dial)
+{} */
+
+// ---------- Palette anwenden ----------
+void SBBClock::applyPalette(LGFX_Sprite& s) {
+    for (int i = 0; i < 16; i++)
+        s.setPaletteColor(i, pal[i]);
+}
+
+// ---------- Initialisierung ----------
+void SBBClock::init(int side) {
+    _size = side;
+    _radius = _size / 2 - 6;
+    _cx = _cy = _size / 2;
+
+    // Canvas
+    _canvas.setColorDepth(lgfx::palette_4bit);
+    _canvas.createSprite(_size, _size);
+    applyPalette(_canvas);
+    _canvas.fillScreen(PalColor::Gray1);
+
+    // Dial
+    _dial.setColorDepth(lgfx::palette_4bit);
+    _dial.createSprite(_size, _size);
+    applyPalette(_dial);
+    _dial.fillScreen(PalColor::Gray1);
+
+    _dial.fillCircle(_cx, _cy, _radius, PalColor::Gray2);
+    _dial.fillCircle(_cx, _cy, _radius * 0.95, PalColor::White);
+
+    createTicks();
+    createHands();
+}
+
+// ---------- Ticks ----------
+void SBBClock::createTicks() {
+    float r3 = _radius * 0.87;
+
+    // Minutenmarken
+    {
+        int w = _radius * 0.0215;
+        int h = _radius * 0.0625;
+        _tickMinute.setColorDepth(lgfx::palette_4bit);
+        _tickMinute.createSprite(w, h);
+        applyPalette(_tickMinute);
+        _tickMinute.fillScreen(PalColor::Black);
+        _tickMinute.setPivot(w / 2, r3);
+
+        float angle = 0;
+        for (int i = 0; i < 60; i++) {
+            _tickMinute.pushRotateZoom(&_dial, _cx, _cy, angle, 1.0, 1.0);
+            angle += 6;
+        }
+    }
+
+    // Stundenmarken
+    {
+        int w = _radius * 0.059;
+        int h = _radius * 0.215;
+        _tickHour.setColorDepth(lgfx::palette_4bit);
+        _tickHour.createSprite(w, h);
+        applyPalette(_tickHour);
+        _tickHour.fillScreen(PalColor::Black);
+        _tickHour.setPivot(w / 2, r3);
+
+        float angle = 0;
+        for (int i = 0; i < 12; i++) {
+            _tickHour.pushRotateZoom(&_dial, _cx, _cy, angle, 1.0, 1.0);
+            angle += 30;
+        }
+    }
+}
+
+// ---------- Zeiger ----------
+void SBBClock::createHands() {
+    // Minutenzeiger
+    {
+        int w = _radius * 0.086;
+        int h = _radius * 1.043;
+        _minuteHand.setColorDepth(lgfx::palette_4bit);
+        _minuteHand.createSprite(w, h);
+        applyPalette(_minuteHand);
+        _minuteHand.fillScreen(PalColor::Black);
+        _minuteHand.setPivot(w/2, _radius * 0.839);
+    }
+
+    // Stundenzeiger
+    {
+        int w = _radius * 0.113;
+        int h = _radius * 0.780;
+        _hourHand.setColorDepth(lgfx::palette_4bit);
+        _hourHand.createSprite(w, h);
+        applyPalette(_hourHand);
+        _hourHand.fillScreen(PalColor::Black);
+        _hourHand.setPivot(w / 2, _radius * 0.575);
+    }
+
+    // Sekundenzeiger
+    {
+        int w = _radius * 0.032;
+        int h = _radius * 0.957;
+        _secondHand.setColorDepth(lgfx::palette_4bit);
+        _secondHand.createSprite(w, h);
+        applyPalette(_secondHand);
+        _secondHand.fillScreen(PalColor::Red);
+        _secondHand.setPivot(w / 2, _radius * 0.645);
+    }
+
+    // Paddle
+    {
+        int w = _radius * 0.183;
+        int h = w;
+        _paddle.setColorDepth(lgfx::palette_4bit);
+        _paddle.createSprite(w, h);
+        applyPalette(_paddle);
+        _paddle.fillScreen(PalColor::Red);
+        _paddle.setPivot(w / 2, _radius * 0.645);
+    }
+}
+
+// ---------- Update / Animation ----------
+void SBBClock::update() {
+    uint32_t now = millis();
+
+    // SBB Mechanik
+    const float SBB_CYCLE = 60.0f;
+    const float SBB_RUN   = 58.5f;
+
+    float t = fmod(now / 1000.0f, SBB_CYCLE);
+
+    float secAngle = (t < SBB_RUN)
+        ? (t / SBB_RUN) * 360.0f
+        : 0.0f;
+
+    int minute = (now / int(SBB_CYCLE * 1000)) % 60;
+    float minAngle = minute * 6.0f;
+    float hourAngle = (minute / 60.0f) * 30.0f;
+
+    // Canvas löschen
+    _canvas.fillScreen(2);
+
+    // Dial
+    _dial.pushSprite(&_canvas, 0, 0);
+
+    // Zeiger
+    _hourHand.pushRotateZoom(&_canvas, _cx, _cy, hourAngle, 1.0, 1.0);
+    _minuteHand.pushRotateZoom(&_canvas, _cx, _cy, minAngle, 1.0, 1.0);
+    _secondHand.pushRotateZoom(&_canvas, _cx, _cy, secAngle, 1.0, 1.0);
+    _paddle.pushRotateZoom(&_canvas, _cx, _cy, secAngle, 1.0, 1.0);
+
+    // Ausgabe
+    _canvas.pushSprite(0, 0);
+}
