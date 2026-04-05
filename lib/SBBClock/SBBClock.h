@@ -21,6 +21,8 @@ class SBBClock
         LGFX* _lcd;
         int   _size, _radius;
         int   _cx, _cy;
+        tm       _rtcTime;
+        timeval  _tv;
 
         // Sprites
         LGFX_Sprite _canvas;

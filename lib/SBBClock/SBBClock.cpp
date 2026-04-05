@@ -136,7 +136,10 @@ void SBBClock::createHands() {
 
 // ---------- Update / Animation ----------
 void SBBClock::update() {
-    uint32_t now = millis();
+    getLocalTime(&_rtcTime);  // Local zone time
+    gettimeofday(&_tv, NULL); // Unix time synchronized to local time as seconds sinc 1.1.1970
+    uint32_t now = 1000 * (_rtcTime.tm_hour * 3600 + _rtcTime.tm_min * 60 + _rtcTime.tm_sec) + _tv.tv_usec / 1000; 
+
 
     // SBB Mechanik
     const float SBB_CYCLE = 60.0f;
@@ -144,13 +147,9 @@ void SBBClock::update() {
 
     float t = fmod(now / 1000.0f, SBB_CYCLE);
 
-    float secAngle = (t < SBB_RUN)
-        ? (t / SBB_RUN) * 360.0f
-        : 0.0f;
-
-    int minute = (now / int(SBB_CYCLE * 1000)) % 60;
-    float minAngle = minute * 6.0f;
-    float hourAngle = (minute / 60.0f) * 30.0f;
+    float secAngle = (t < SBB_RUN) ? (t / SBB_RUN) * 360.0f : 0.0f;
+    float minAngle  = _rtcTime.tm_min  * 6.0f;
+    float hourAngle = _rtcTime.tm_hour * 30.0f;
 
     // Canvas löschen
     _canvas.fillScreen(2);
