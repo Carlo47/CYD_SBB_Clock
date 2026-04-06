@@ -36,7 +36,7 @@ class SBBClock
         LGFX_Sprite _paddle;
 
         // Palette
-        uint32_t pal[16] = {
+        int pal[16] = {
             TFT_TRANSPARENT, 
             TFT_BLACK,
             TFT_WHITE,

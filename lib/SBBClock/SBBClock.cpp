@@ -141,9 +141,6 @@ void SBBClock::update() {
     float minAngle  = _rtcTime.tm_min  * 6.0f;
     float hourAngle = _rtcTime.tm_hour * 30.0f;
 
-    // Canvas löschen
-    _canvas.fillScreen(2);
-
     // Dial
     _dial.pushSprite(&_canvas, 0, 0);
 
@@ -154,5 +151,5 @@ void SBBClock::update() {
     _paddle.pushRotateZoom(&_canvas, _cx, _cy, secAngle, 1.0, 1.0, 0);
 
     // Ausgabe
-    _canvas.pushSprite(0, 0);
+    _canvas.pushSprite((_lcd->width() - _size) / 2, 0);
 }
