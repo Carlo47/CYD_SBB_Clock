@@ -3,6 +3,7 @@
 #include <LovyanGFX.hpp>
 #include "lgfx_ESP32_2432S028.h"
 
+// ---------- Colors of the 4-bit-palette ----------
 enum PalColor {Transparent, Black, White, Red, Green, Blue, Lightgray, Darkgray,
                Yellow, Magenta, Orange, Pink, Brown, Gold, Silver, Skyblue };
 

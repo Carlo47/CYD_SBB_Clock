@@ -22,10 +22,7 @@ void setup()
     printConnectionDetails();
     initRTC(timeZone, false);
     tm rtcTime;
-    timeval tv;
     getLocalTime(&rtcTime);  // Local zone time
-    gettimeofday(&tv, NULL);
-
     printDateTime(TIME_FORMAT);
 
     lcd.init();

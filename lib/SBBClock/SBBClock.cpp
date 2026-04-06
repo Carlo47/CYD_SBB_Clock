@@ -5,13 +5,13 @@
 #include "SBBClock.h"
 
 
-// ---------- Palette anwenden ----------
+// ---------- Apply the color palette ----------
 void SBBClock::applyPalette(LGFX_Sprite& s) {
     for (int i = 0; i < 16; i++)
         s.setPaletteColor(i, pal[i]);
 }
 
-// ---------- Initialisierung ----------
+// ---------- Initialization ----------
 void SBBClock::init(int side) {
     _size = side;
     _radius = _size / 2 - 6;
@@ -21,7 +21,7 @@ void SBBClock::init(int side) {
     _canvas.setColorDepth(lgfx::palette_4bit);
     _canvas.createSprite(_size, _size);
     applyPalette(_canvas);
-    _canvas.fillScreen(PalColor::Lightgray);
+    _canvas.fillScreen(PalColor::Black);
 
     // Dial
     _dial.setColorDepth(lgfx::palette_4bit);
@@ -40,7 +40,7 @@ void SBBClock::init(int side) {
 void SBBClock::createTicks() {
     float r3 = _radius * 0.87;
 
-    // Minutenmarken
+    // Minute marks
     {
         int w = _radius * 0.0215;
         int h = _radius * 0.0625;
@@ -57,7 +57,7 @@ void SBBClock::createTicks() {
         }
     }
 
-    // Stundenmarken
+    // Hour marks
     {
         int w = _radius * 0.059;
         int h = _radius * 0.215;
@@ -75,9 +75,9 @@ void SBBClock::createTicks() {
     }
 }
 
-// ---------- Zeiger ----------
+// ---------- Hands ----------
 void SBBClock::createHands() {
-    // Minutenzeiger
+    // Minute Hand
     {
         int w = _radius * 0.086;
         int h = _radius * 1.043;
@@ -88,7 +88,7 @@ void SBBClock::createHands() {
         _minuteHand.setPivot(w/2, _radius * 0.839);
     }
 
-    // Stundenzeiger
+    // Hour hand
     {
         int w = _radius * 0.113;
         int h = _radius * 0.780;
@@ -99,7 +99,7 @@ void SBBClock::createHands() {
         _hourHand.setPivot(w / 2, _radius * 0.575);
     }
 
-    // Sekundenzeiger
+    // Second hand
     {
         int w = _radius * 0.032;
         int h = _radius * 0.957;
@@ -119,7 +119,7 @@ void SBBClock::createHands() {
         _paddle.createSprite(w, h);
         applyPalette(_paddle);
         _paddle.fillScreen(PalColor::Transparent); 
-        _paddle.fillCircle(r, r, r, PalColor::Red);
+        _paddle.fillCircle(r, r, r, PalColor::Red); 
         _paddle.setPivot(w / 2, _radius * 0.645);
     }
 }
@@ -130,26 +130,45 @@ void SBBClock::update() {
     gettimeofday(&_tv, NULL); // Unix time synchronized to local time as seconds sinc 1.1.1970
     uint32_t now = 1000 * (_rtcTime.tm_hour * 3600 + _rtcTime.tm_min * 60 + _rtcTime.tm_sec) + _tv.tv_usec / 1000; 
 
+    // --- Time constant ---
+    const uint32_t MS_PER_SEC  = 1000;
+    const uint32_t MS_PER_MIN  = 60 * MS_PER_SEC;
+    const uint32_t MS_PER_HOUR = 60 * MS_PER_MIN;
 
-    // SBB Mechanik
+    // --- Hand rotation times ---
+    const uint32_t MS_PER_SEC_REV  = 60 * MS_PER_SEC;        // 60 seconds
+    const uint32_t MS_PER_MIN_REV  = 60 * MS_PER_MIN;        // 60 minutes
+    const uint32_t MS_PER_HOUR_REV = 12 * MS_PER_HOUR;       // 12 hours
+
+    // --- Angle per Millisecond ---
+    const float DEG_PER_MS_SEC  = 360.0f / MS_PER_SEC_REV;
+    const float DEG_PER_MS_MIN  = 360.0f / MS_PER_MIN_REV;
+    const float DEG_PER_MS_HOUR = 360.0f / MS_PER_HOUR_REV;
+
+    // --- Angle of hands (always 0–360°) ---
+    //float secAngle  = fmod(now * DEG_PER_MS_SEC,  360.0f); // smooth-gliding second hand 
+    //float minAngle  = fmod(now * DEG_PER_MS_MIN,  360.0f); // smooth-gliding minute hand
+    float hourAngle = fmod(now * DEG_PER_MS_HOUR, 360.0f);   // smooth-gliding hour hand
+
+    // SBB Mechanics
     const float SBB_CYCLE = 60.0f;
     const float SBB_RUN   = 58.5f;
 
     float t = fmod(now / 1000.0f, SBB_CYCLE);
 
-    float secAngle = (t < SBB_RUN) ? (t / SBB_RUN) * 360.0f : 0.0f;
-    float minAngle  = _rtcTime.tm_min  * 6.0f;
-    float hourAngle = _rtcTime.tm_hour * 30.0f;
+    float secAngle = (t < SBB_RUN) ? (t / SBB_RUN) * 360.0f : 0.0f; // stop and go second hand
+    float minAngle  = _rtcTime.tm_min * 6.0f;     // jumping minute hand
+    //float hourAngle = _rtcTime.tm_hour * 30.0f; // jumping hour hand
 
     // Dial
     _dial.pushSprite(&_canvas, 0, 0);
 
-    // Zeiger
+    // Hands
     _hourHand.pushRotateZoom(&_canvas, _cx, _cy, hourAngle, 1.0, 1.0);
     _minuteHand.pushRotateZoom(&_canvas, _cx, _cy, minAngle, 1.0, 1.0);
     _secondHand.pushRotateZoom(&_canvas, _cx, _cy, secAngle, 1.0, 1.0);
     _paddle.pushRotateZoom(&_canvas, _cx, _cy, secAngle, 1.0, 1.0, 0);
 
-    // Ausgabe
-    _canvas.pushSprite((_lcd->width() - _size) / 2, 0);
+    // Display time
+    _canvas.pushSprite(_cx/4, 0);
 }
