@@ -90,13 +90,16 @@ void SBBClock::createHands() {
 
     // Hour hand
     {
-        int w = _radius * 0.113;
-        int h = _radius * 0.780;
+        int w0 = _radius * 0.113;
+        int w1 = _radius * 0.091;
+        int h  = _radius * 0.780;
         _hourHand.setColorDepth(lgfx::palette_4bit);
-        _hourHand.createSprite(w, h);
+        _hourHand.createSprite(w0, h);
         applyPalette(_hourHand);
         _hourHand.fillScreen(PalColor::Black);
-        _hourHand.setPivot(w / 2, _radius * 0.575);
+        _hourHand.fillTriangle(0,h, 0,0, (w0-w1)/2, 0,  PalColor::Transparent);  // makes the hour hand slightly conic
+        _hourHand.fillTriangle(w0,h, w0,0, (w0+w1)/2,0, PalColor::Transparent);
+        _hourHand.setPivot(w0 / 2, _radius * 0.575);
     }
 
     // Second hand
@@ -164,10 +167,10 @@ void SBBClock::update() {
     _dial.pushSprite(&_canvas, 0, 0);
 
     // Hands
-    _hourHand.pushRotateZoom(&_canvas, _cx, _cy, hourAngle, 1.0, 1.0);
+    _hourHand.pushRotateZoom(&_canvas, _cx, _cy, hourAngle, 1.0, 1.0, 0); // push sprite with transparence
     _minuteHand.pushRotateZoom(&_canvas, _cx, _cy, minAngle, 1.0, 1.0);
     _secondHand.pushRotateZoom(&_canvas, _cx, _cy, secAngle, 1.0, 1.0);
-    _paddle.pushRotateZoom(&_canvas, _cx, _cy, secAngle, 1.0, 1.0, 0);
+    _paddle.pushRotateZoom(&_canvas, _cx, _cy, secAngle, 1.0, 1.0, 0);    // push sprite with transparence
 
     // Display time
     _canvas.pushSprite(_cx/4, 0);
