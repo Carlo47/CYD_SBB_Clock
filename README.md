@@ -2,7 +2,10 @@
 The program shows how to implement the famous SBB station clock with its 
 unique stop-and-go second hand.
 
-[![sbb-clock](images/Bahnhofuhr64x64.jpg)](images/sbb-clock.mp4)
+<video src="images/sbb-clock.mp4" controls width="300">
+Ihr Browser unterstützt das Video-Tag nicht.
+</video>
+
 
 
 
